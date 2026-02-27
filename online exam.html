@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Disha Online Exam</title>
+
+<style>
+:root {
+  --accent: #2563eb;
+  --bg: #f7fafc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --fail: #7f1d1d;
+  --pass: #065f46;
+}
+body {
+  font-family: Inter, system-ui, Arial, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+}
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(2,6,23,0.06);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+h1 { text-align:center; font-size:28px; margin-bottom:10px; }
+.small { font-size:16px; font-weight:600; color:#111; margin-bottom:5px; display:block; }
+input[type="text"] { width:95%; padding:10px; margin-bottom:12px; border-radius:8px; border:1px solid #ccc; font-size:16px; }
+button { padding:12px 18px; border:none; border-radius:10px; cursor:pointer; font-size:16px; color:#fff; background:var(--accent); }
+button.secondary { background:#64748b; }
+.hidden { display:none; }
+.timer { font-weight:bold; font-size:22px; color:#FF0000; }
+.option-label { display:block; border:1px solid #ddd; padding:10px; border-radius:8px; margin-bottom:6px; cursor:pointer; }
+.result { padding:20px; border-radius:10px; margin-top:10px; }
+
+/* Modal */
+#resultModal.hidden { display:none; }
+#resultModal {
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.5); display:flex; justify-content:center; align-items:center; z-index:9999;
+}
+#resultModal .modalBox {
+  background:white; padding:30px; border-radius:12px; text-align:center; max-width:400px; width:90%;
+  box-shadow:0 6px 20px rgba(0,0,0,0.3);
+}
+#resultModal img { display:block; margin:0 auto 10px auto; height:50px; }
+
+/* Responsive */
+@media(max-width:600px){
+  .container{padding:12px;margin:10px;}
+  h1{font-size:22px;}
+  input[type="text"]{font-size:16px;}
+  button, button.secondary{width:100%; padding:12px;}
+  #examCard > div[style*="display:flex;justify-content:space-between"]{flex-direction:column; align-items:flex-start;}
+  #examCard > div[style*="display:flex;gap:8px;align-items:center"]{flex-direction:column; gap:6px;}
+  .option-label{font-size:16px;}
+  #resultModal .modalBox{width:95%; padding:20px;}
+  #resultModal img{height:40px; margin-bottom:8px;}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <!-- ENTRY CARD -->
+  <div class="card" id="entryCard">
+    <img src="https://website.dishagroup.in/img/logo.png" alt="Logo" style="display:block; margin:0 auto 10px;">
+    <h1>Disha Online Exam</h1>
+
+    <label class="small">Student Name:</label>
+    <input id="studentName" type="text" placeholder="Enter name">
+
+    <label class="small">Roll Number:</label>
+    <input id="rollNumber" type="text" placeholder="Enter roll number">
+
+    <label class="small">Select Subject:</label>
+    <select id="subjectSelect" style="width:95%; padding:10px; font-size:16px; border-radius:8px; border:1px solid #ccc; margin-bottom:12px;">
+      <option value="">Select Subject</option>
+      <option value="EXCEL">Excel</option>
+      <option value="WORD">Word</option>
+      <option value="POWERPOINT">PowerPoint</option>
+      <option value="COMPUTER">Computer</option>
+    </select>
+
+    <div style="display:flex; justify-content:space-between; gap:10px;">
+      <button id="resultBtn" class="secondary">← View Result</button>
+      <button id="startBtn">Start Exam →</button>
+    </div>
+  </div>
+
+  <!-- EXAM CARD -->
+  <div class="card hidden" id="examCard">
+    <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+      <div><b id="qCount">Question 1 / 20</b></div>
+      <div style="text-align:right;">
+        <div style="font-size:14px; color:#FF0000;">Time Left</div>
+        <div class="timer" id="timer">15:00</div>
+      </div>
+    </div>
+
+    <div id="questionText" style="font-size:18px; font-weight:bold;"></div>
+    <div id="options" style="margin-top:10px;"></div>
+
+    <div style="display:flex; justify-content:space-between; margin-top:12px; align-items:center;">
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="secondary" id="prevBtn">← Prev</button>
+        <button class="secondary" id="previewBtn">Preview</button>
+        <button class="secondary" id="nextBtn">Next →</button>
+      </div>
+      <div><button class="secondary" id="saveNextBtn">Save & Next</button></div>
+    </div>
+
+    <button id="submitBtn" style="background:green; width:100%; margin-top:10px;">Submit Exam</button>
+  </div>
+
+  <!-- RESULT CHECK CARD -->
+  <div class="card hidden" id="resultCheckCard">
+    <img src="https://website.dishagroup.in/img/logo.png" alt="Logo" style="display:block; margin:0 auto 10px;">
+    <h1>Disha Online Result</h1>
+
+    <label class="small">Enter Roll Number:</label>
+    <input id="checkRollInput" type="text" placeholder="Enter your roll number">
+
+    <div style="display:flex; justify-content:space-between; gap:10px;">
+      <button id="backToHomeBtn" class="secondary">← Back</button>
+      <button id="viewResultBtn" style="background:green;">View Result</button>
+    </div>
+
+    <div id="resultInfo" style="margin-top:20px; display:none; background:#e0f2fe; padding:15px; border-radius:8px;">
+      <hr>
+      <p><b>Name:</b> <span id="rName"></span></p>
+      <p><b>Subject:</b> <span id="rSubject"></span></p>
+      <p><b>Marks:</b> <span id="rMarks"></span></p>
+      <p><b>Status:</b> <span id="rStatus"></span></p>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT MODAL -->
+
+<div id="resultModal" class="hidden">
+  <div class="modalBox">
+    <img src="https://website.dishagroup.in/img/logo.png" alt="Logo">
+    <h2 id="modalStatus">STATUS</h2>
+    <p><b>Name:</b> <span id="modalName"></span></p>
+    <p><b>Roll No:</b> <span id="modalRoll"></span></p>
+    <p><b>Score:</b> <span id="modalScore"></span> / 100</p>
+    <p style="color:green; margin-top:8px;">EXAM END ✔</p>
+    <button id="closeModalBtn">Close</button>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXDzObkOWAcIe8E5WTXIDGYnjXBNRnkDGb7UVCNnGyP3qqkXqibMw88xqLELMe-jql5w/exec";
+
+let questions=[], currentIndex=0, answers=[], studentName="", rollNumber="";
+let timeLeft=15*60, timer=null, examRunning=false, TOTAL_Q=0;
+let examStartTime="", examFinishTime="";
+const MARKS_PER_Q=5, PASS_THRESHOLD=40;
+
+/* Elements */
+const entryCard=document.getElementById("entryCard");
+const examCard=document.getElementById("examCard");
+const resultCheckCard=document.getElementById("resultCheckCard");
+const questionText=document.getElementById("questionText");
+const optionsEl=document.getElementById("options");
+const qCount=document.getElementById("qCount");
+const timerEl=document.getElementById("timer");
+const resultModal=document.getElementById("resultModal");
+const modalStatus=document.getElementById("modalStatus");
+const modalName=document.getElementById("modalName");
+const modalRoll=document.getElementById("modalRoll");
+const modalScore=document.getElementById("modalScore");
+
+function escapeHtml(t){return String(t).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");}
+function formatTime(sec){const m=Math.floor(sec/60).toString().padStart(2,"0");const s=(sec%60).toString().padStart(2,"0");return`${m}:${s}`;}
+
+function renderQuestion(i){
+  const q=questions[i];
+  qCount.innerText=`Question ${i+1} / ${TOTAL_Q}`;
+  questionText.innerText=q.q;
+  optionsEl.innerHTML="";
+  q.opts.forEach((opt,idx)=>{
+    const letter=String.fromCharCode(65+idx);
+    const label=document.createElement("label");
+    label.className="option-label";
+    label.innerHTML=`<input type="radio" name="opt" value="${letter}" style="margin-right:8px;"> ${escapeHtml(opt)}`;
+    optionsEl.appendChild(label);
+  });
+  if(answers[i]){const sel=document.querySelector(`input[name="opt"][value="${answers[i]}"]`);if(sel)sel.checked=true;}
+}
+optionsEl.addEventListener("change",()=>{const sel=document.querySelector('input[name="opt"]:checked');if(sel)answers[currentIndex]=sel.value;});
+
+prevBtn.addEventListener("click",()=>{if(currentIndex>0){currentIndex--;renderQuestion(currentIndex);}});
+nextBtn.addEventListener("click",()=>{if(currentIndex<TOTAL_Q-1){currentIndex++;renderQuestion(currentIndex);}});
+saveNextBtn.addEventListener("click",()=>{const sel=document.querySelector('input[name="opt"]:checked');if(sel)answers[currentIndex]=sel.value;if(currentIndex<TOTAL_Q-1){currentIndex++;renderQuestion(currentIndex);}});
+previewBtn.addEventListener("click",()=>{alert(`Preview:\nQuestion ${currentIndex+1}\nSelected: ${answers[currentIndex]||"Not Answered"}`);});
+
+function startTimer(){clearInterval(timer);timer=setInterval(()=>{if(!examRunning)return;timeLeft--;timerEl.innerText=formatTime(timeLeft);if(timeLeft<=0){clearInterval(timer);autoSubmit();}},1000);}
+
+function computeScore(){let s=0;for(let i=0;i<TOTAL_Q;i++){if((answers[i]||"").toUpperCase()===(questions[i].ans||"").toUpperCase())s+=MARKS_PER_Q;}return s;}
+
+function showResult(auto=false){
+  if(!examRunning&& !auto)return;
+  examRunning=false;clearInterval(timer);
+  const score=computeScore();const passed=score>=PASS_THRESHOLD;
+  examFinishTime=new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"});
+  modalStatus.innerText=passed?"PASS":"FAIL";
+  modalStatus.style.color=passed?"#065f46":"#7f1d1d";
+  modalName.innerText=studentName;
+  modalRoll.innerText=rollNumber;
+  modalScore.innerText=score;
+  resultModal.classList.remove("hidden");
+  sendToGoogleSheet(studentName,rollNumber,score,passed?"PASS":"FAIL",examStartTime,examFinishTime);
+}
+
+function autoSubmit(){if(!examRunning)return;alert("Time up! Auto-submitting.");showResult(true);}
+
+function sendToGoogleSheet(name,roll,score,status,start,finish){
+  const subject=document.getElementById("subjectSelect").value;
+  fetch(SCRIPT_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({name,roll,score,status,subject,startTime:start,finishTime:finish})});
+}
+
+startBtn.addEventListener("click",async()=>{
+  const subject=document.getElementById("subjectSelect").value;
+  studentName=document.getElementById("studentName").value.trim();
+  rollNumber=document.getElementById("rollNumber").value.trim();
+  if(!studentName)return alert("Enter name");
+  if(!rollNumber)return alert("Enter roll number");
+  if(!subject)return alert("Select subject");
+
+  if(!confirm(`SUBJECT: ${subject}\nSTUDENT: ${studentName}`))return;
+
+  try{
+    const res=await fetch(`${SCRIPT_URL}?subject=${subject}`);
+    const data=await res.json();
+    if(!data.questions||data.questions.length===0)return alert("No questions found.");
+    questions=data.questions;TOTAL_Q=questions.length;
+  }catch(e){alert("Error loading questions!");return;}
+  answers=Array(TOTAL_Q).fill(null);currentIndex=0;timeLeft=15*60;examRunning=true;
+  entryCard.classList.add("hidden");examCard.classList.remove("hidden");
+  renderQuestion(currentIndex);timerEl.innerText=formatTime(timeLeft);startTimer();
+  examStartTime=new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"});
+});
+
+submitBtn.addEventListener("click",()=>{if(!examRunning)return; if(confirm("Submit exam?"))showResult(false);});
+closeModalBtn.addEventListener("click",()=>{resultModal.classList.add("hidden");setTimeout(()=>location.reload(),300);});
+document.addEventListener("visibilitychange",()=>{if(examRunning && document.hidden){alert("Tab switched! Auto-submitted.");showResult(true);}});
+
+/* Result Check Logic */
+const resultBtn=document.getElementById("resultBtn");
+const backToHomeBtn=document.getElementById("backToHomeBtn");
+const viewResultBtn=document.getElementById("viewResultBtn");
+const checkRollInput=document.getElementById("checkRollInput");
+const resultInfo=document.getElementById("resultInfo");
+const rName=document.getElementById("rName");
+const rSubject=document.getElementById("rSubject");
+const rMarks=document.getElementById("rMarks");
+const rStatus=document.getElementById("rStatus");
+
+resultBtn.addEventListener("click",()=>{entryCard.classList.add("hidden");resultCheckCard.classList.remove("hidden");});
+backToHomeBtn.addEventListener("click",()=>{resultCheckCard.classList.add("hidden");entryCard.classList.remove("hidden");resultInfo.style.display="none";checkRollInput.value="";});
+viewResultBtn.addEventListener("click",async()=>{
+  const roll=checkRollInput.value.trim();
+  if(!roll)return alert("Enter roll number!");
+  try{
+    const res=await fetch(`${SCRIPT_URL}?type=result&roll=${encodeURIComponent(roll)}`);
+    const data=await res.json();
+    if(data.found){
+      rName.innerText=data.name;rSubject.innerText=data.subject;rMarks.innerText=data.score;
+      rStatus.innerText=data.status;rStatus.style.color=(data.status==="PASS")?"green":"red";
+      resultInfo.style.display="block";
+    }else{alert("❌ Invalid Roll Number!");resultInfo.style.display="none";}
+  }catch(e){alert("Error fetching result!");}
+});
+</script>
+</body>
+</html>
